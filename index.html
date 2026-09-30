@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Assistant - Trợ lý Tin học</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef2f7}
+.chatbox{width:100%;max-width:520px;height:100vh;margin:auto;background:white;display:flex;flex-direction:column}
+.header{background:#2563eb;color:white;padding:18px;text-align:center}
+.header h2{margin:0 0 5px}
+#messages{flex:1;overflow-y:auto;padding:15px}
+.message{max-width:85%;padding:12px;margin:10px 0;border-radius:15px;line-height:1.5;white-space:pre-wrap}
+.user{background:#dbeafe;margin-left:auto}
+.bot{background:#f1f5f9;margin-right:auto}
+.input-area{display:flex;gap:7px;padding:10px;border-top:1px solid #ddd}
+input{flex:1;min-width:0;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px}
+button{border:0;border-radius:10px;padding:10px 13px;font-size:18px;cursor:pointer}
+#sendBtn{background:#2563eb;color:white}
+#micBtn{background:#ef4444;color:white}
+.speakBtn{background:#e2e8f0;margin-top:7px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="chatbox">
+  <div class="header">
+    <h2>🤖 IT Assistant</h2>
+    <small>Trợ lý môn Tin học lớp 10</small>
+  </div>
+
+  <div id="messages">
+    <div class="message bot">👋 Xin chào! Mình là IT Assistant.
+Bạn có thể nhập câu hỏi hoặc bấm 🎤 để nói.</div>
+  </div>
+
+  <div class="input-area">
+    <button id="micBtn" onclick="startVoice()">🎤</button>
+    <input id="question" type="text" placeholder="Nhập câu hỏi Tin học...">
+    <button id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+const input = document.getElementById("question");
+const messages = document.getElementById("messages");
+
+function addUserMessage(text){
+  const div=document.createElement("div");
+  div.className="message user";
+  div.textContent="👤 "+text;
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function addBotMessage(answer){
+  const div=document.createElement("div");
+  div.className="message bot";
+  div.textContent="🤖 "+answer;
+
+  const button=document.createElement("button");
+  button.className="speakBtn";
+  button.textContent="🔊 Nghe câu trả lời";
+  button.onclick=()=>speakText(answer);
+
+  div.appendChild(document.createElement("br"));
+  div.appendChild(button);
+  messages.appendChild(div);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function sendMessage(){
+  const question=input.value.trim();
+  if(!question)return;
+  addUserMessage(question);
+  input.value="";
+  setTimeout(()=>addBotMessage(getAnswer(question)),400);
+}
+
+/* Bản thử nghiệm: câu trả lời mẫu.
+   Sau này có thể thay phần này bằng AI API. */
+function getAnswer(question){
+  const q=question.toLowerCase();
+
+  if(q.includes("ram"))
+    return "RAM là bộ nhớ truy cập ngẫu nhiên, dùng để lưu trữ tạm thời dữ liệu và chương trình đang được máy tính sử dụng.";
+
+  if(q.includes("cpu"))
+    return "CPU là bộ xử lý trung tâm của máy tính. CPU thực hiện các lệnh và xử lý dữ liệu.";
+
+  if(q.includes("thuật toán") || q.includes("thuat toan"))
+    return "Thuật toán là một dãy hữu hạn các bước được sắp xếp theo trình tự để giải quyết một bài toán.";
+
+  if(q.includes("html"))
+    return "HTML là ngôn ngữ đánh dấu được dùng để xây dựng cấu trúc của trang web.";
+
+  if(q.includes("javascript"))
+    return "JavaScript là ngôn ngữ lập trình thường được dùng để tạo tính tương tác cho trang web.";
+
+  if(q.includes("mạng máy tính") || q.includes("mang may tinh"))
+    return "Mạng máy tính là hệ thống gồm các thiết bị được kết nối với nhau để trao đổi dữ liệu và chia sẻ tài nguyên.";
+
+  return "Mình chưa có câu trả lời mẫu cho câu hỏi này. Hiện tại mình đang ở phiên bản thử nghiệm. Bước tiếp theo có thể kết nối mình với AI để trả lời nhiều câu hỏi Tin học hơn.";
+}
+
+function startVoice(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition){
+    alert("Trình duyệt này chưa hỗ trợ nhận diện giọng nói. Hãy thử mở bằng Safari hoặc Chrome.");
+    return;
+  }
+
+  const recognition=new SpeechRecognition();
+  recognition.lang="vi-VN";
+  recognition.continuous=false;
+  recognition.interimResults=false;
+
+  recognition.onstart=()=>{
+    document.getElementById("micBtn").textContent="🔴";
+  };
+
+  recognition.onresult=(event)=>{
+    const text=event.results[0][0].transcript;
+    input.value=text;
+    sendMessage();
+  };
+
+  recognition.onerror=()=>{
+    document.getElementById("micBtn").textContent="🎤";
+    alert("Không nhận diện được giọng nói. Hãy kiểm tra quyền micro của trình duyệt.");
+  };
+
+  recognition.onend=()=>{
+    document.getElementById("micBtn").textContent="🎤";
+  };
+
+  recognition.start();
+}
+
+function speakText(text){
+  window.speechSynthesis.cancel();
+  const speech=new SpeechSynthesisUtterance(text);
+  speech.lang="vi-VN";
+  speech.rate=0.95;
+  speech.pitch=1;
+  window.speechSynthesis.speak(speech);
+}
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter")sendMessage();
+});
+</script>
+</body>
+</html>
